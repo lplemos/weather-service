@@ -1,0 +1,977 @@
+{
+	"info": {
+		"_postman_id": "weather-service-v1-collection",
+		"name": "WeatherService v1 API",
+		"description": "Coleção de testes para a API WeatherService v1 (Spring Boot WebFlux) - Updated with all current endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "API Info & Status",
+			"item": [
+				{
+					"name": "Get API Version Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/version",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"version"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get API Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"status"
+							]
+						}
+					}
+				},
+				{
+					"name": "Debug Config",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/debug/config",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"debug",
+								"config"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Weather Data",
+			"item": [
+				{
+					"name": "Test Weather API (city=Lisbon)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/test?city=Lisbon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"test"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current Weather (raw)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current?city=Lisbon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current Weather with Provider",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current?city=Lisbon&provider=openweathermap",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								},
+								{
+									"key": "provider",
+									"value": "openweathermap"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current Weather (structured)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current/structured?city=Lisbon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current",
+								"structured"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current Weather Structured with Provider",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current/structured?city=Lisbon&provider=openweathermap",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current",
+								"structured"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								},
+								{
+									"key": "provider",
+									"value": "openweathermap"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Weather Summary",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/summary?city=Lisbon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Weather Summary with Provider",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/summary?city=Lisbon&provider=openweathermap",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								},
+								{
+									"key": "provider",
+									"value": "openweathermap"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Weather Forecast",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/forecast?city=Lisbon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"forecast"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Weather Forecast with Provider",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/forecast?city=Lisbon&provider=openweathermap",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"forecast"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								},
+								{
+									"key": "provider",
+									"value": "openweathermap"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current Weather by City ID (Coimbra)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current/2742032",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current",
+								"2742032"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current Weather by City ID with Provider",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current/2742032?provider=openweathermap",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current",
+								"2742032"
+							],
+							"query": [
+								{
+									"key": "provider",
+									"value": "openweathermap"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Providers",
+			"item": [
+				{
+					"name": "Get Available Providers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/providers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"providers"
+							]
+						}
+					}
+				},
+				{
+					"name": "Check Provider Health (openweathermap)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/providers/openweathermap/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"providers",
+								"openweathermap",
+								"health"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Cache Management",
+			"item": [
+				{
+					"name": "Get Cache Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/cache/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"cache",
+								"stats"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Cache Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/cache/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"cache",
+								"health"
+							]
+						}
+					}
+				},
+				{
+					"name": "Evict City Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/cache/city?city=Lisbon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"cache",
+								"city"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Evict All Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/cache/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"cache",
+								"all"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Hierarchical Cache",
+			"item": [
+				{
+					"name": "Get Current Weather (Hierarchical)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/hierarchical/current?city=Lisbon&provider=openweathermap",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"hierarchical",
+								"current"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								},
+								{
+									"key": "provider",
+									"value": "openweathermap"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Weather Forecast (Hierarchical)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/hierarchical/forecast?city=Lisbon&provider=openweathermap",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"hierarchical",
+								"forecast"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								},
+								{
+									"key": "provider",
+									"value": "openweathermap"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Hierarchical Cache Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/hierarchical/cache/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"hierarchical",
+								"cache",
+								"stats"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Hierarchical Cache Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/hierarchical/cache/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"hierarchical",
+								"cache",
+								"health"
+							]
+						}
+					}
+				},
+				{
+					"name": "Evict Hierarchical City Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/hierarchical/cache/city?city=Lisbon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"hierarchical",
+								"cache",
+								"city"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Evict All Hierarchical Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/hierarchical/cache/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"hierarchical",
+								"cache",
+								"all"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Validation Tests",
+			"item": [
+				{
+					"name": "Test Invalid City (Empty)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current?city=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Test Invalid City (Special Characters)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current?city=Lisbon123",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon123"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Test Invalid Provider",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current?city=Lisbon&provider=invalidprovider",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Lisbon"
+								},
+								{
+									"key": "provider",
+									"value": "invalidprovider"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Test Invalid City ID (Zero)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current/0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current",
+								"0"
+							]
+						}
+					}
+				},
+				{
+					"name": "Test Invalid City ID (Negative)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current/-1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current",
+								"-1"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "POST Endpoints (DTO)",
+			"item": [
+				{
+					"name": "Get Current Weather (POST with DTO)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"city\": \"Lisbon\",\n  \"provider\": \"openweathermap\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Weather Summary (POST with DTO)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"city\": \"Lisbon\",\n  \"provider\": \"openweathermap\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/summary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"summary"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Weather Forecast (POST with DTO)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"city\": \"Lisbon\",\n  \"provider\": \"openweathermap\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/forecast",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"forecast"
+							]
+						}
+					}
+				},
+				{
+					"name": "Test DTO Validation (Invalid City)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"city\": \"\",\n  \"provider\": \"openweathermap\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							]
+						}
+					}
+				},
+				{
+					"name": "Test DTO Validation (Invalid Provider)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"city\": \"Lisbon\",\n  \"provider\": \"invalidprovider\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/weather/current",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Test script to validate responses",
+					"if (pm.response.code === 200) {",
+					"    console.log('✅ Request successful');",
+					"    if (pm.response.json()) {",
+					"        const response = pm.response.json();",
+					"        if (response.name) {",
+					"            console.log('✅ Weather data for: ' + response.name);",
+					"        } else if (response.city) {",
+					"            console.log('✅ Forecast data for: ' + response.city.name);",
+					"        } else if (response.status) {",
+					"            console.log('✅ Status: ' + response.status);",
+					"        } else if (response.currentVersion) {",
+					"            console.log('✅ API Version: ' + response.currentVersion);",
+					"        }",
+					"    }",
+					"} else if (pm.response.code === 401) {",
+					"    console.log('⚠️ API key might not be activated yet');",
+					"} else if (pm.response.code === 429) {",
+					"    console.log('⚠️ Rate limit exceeded - wait 10 minutes');",
+					"} else if (pm.response.code === 404) {",
+					"    console.log('❌ Endpoint not found');",
+					"} else {",
+					"    console.log('❌ Request failed with status: ' + pm.response.code);",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+} 

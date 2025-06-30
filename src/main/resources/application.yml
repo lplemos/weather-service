@@ -18,6 +18,31 @@ spring:
     url: jdbc:postgresql://localhost:5432/weatherdb
     user: postgres
     password: password
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1800s # 30 minutos padrão
+      cache-null-values: false
+
+# Weather API Configuration
+# The actual API key will be loaded from application-local.yml
+weather:
+  openweathermap:
+    api-key: ${WEATHER_OPENWEATHERMAP_API_KEY:}
+    base-url: ${WEATHER_OPENWEATHERMAP_BASE_URL:https://api.openweathermap.org/data/2.5}
+    units: ${WEATHER_OPENWEATHERMAP_UNITS:metric}
+    language: ${WEATHER_OPENWEATHERMAP_LANGUAGE:en}
 
 management:
   endpoints:
@@ -33,4 +58,9 @@ logging:
     com.lplemos.weather_service: DEBUG
     org.springframework.r2dbc: DEBUG
     org.flywaydb: DEBUG
-    org.springframework.boot.autoconfigure.flyway: DEBUG 
+    org.springframework.boot.autoconfigure.flyway: DEBUG
+    # HTTP Client logging - shows all requests and responses
+    org.springframework.web.reactive.function.client: DEBUG
+    reactor.netty.http.client: DEBUG
+    # WebClient wire logging - shows the actual HTTP wire
+    org.springframework.web.reactive.function.client.ExchangeFilterFunctions: DEBUG 

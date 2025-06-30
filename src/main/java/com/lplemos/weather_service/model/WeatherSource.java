@@ -1,9 +1,14 @@
 package com.lplemos.weather_service.model;
 
+/**
+ * Represents the source of weather data in the database
+ * This tracks where the weather data came from when stored
+ */
 public enum WeatherSource {
-    OPENWEATHER_MAP("OpenWeatherMap"),
-    WEATHER_API("WeatherAPI"),
+    OPENWEATHERMAP("OpenWeatherMap"),
+    WEATHERAPI("WeatherAPI"),
     ACCUWEATHER("AccuWeather"),
+    METEO("Meteo API"),
     MANUAL("Manual"),
     HISTORICAL("Historical");
     
@@ -15,5 +20,17 @@ public enum WeatherSource {
     
     public String getDisplayName() {
         return displayName;
+    }
+    
+    /**
+     * Convert from WeatherProviderType to WeatherSource
+     */
+    public static WeatherSource fromProviderType(WeatherProviderType providerType) {
+        return switch (providerType) {
+            case OPENWEATHERMAP -> OPENWEATHERMAP;
+            case WEATHERAPI -> WEATHERAPI;
+            case ACCUWEATHER -> ACCUWEATHER;
+            case METEO -> METEO;
+        };
     }
 } 
