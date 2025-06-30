@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: weather-service
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/weatherdb
+    username: postgres
+    password: password
+  sql:
+    init:
+      mode: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.lplemos.weather_service: DEBUG
+    org.springframework.r2dbc: DEBUG 
