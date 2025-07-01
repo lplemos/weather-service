@@ -1,0 +1,105 @@
+# Production Docker Compose Configuration
+# This file is for production deployment with external services
+# Use this when you have managed Redis and PostgreSQL services
+
+version: '3.8'
+
+services:
+  weather-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather-service-prod
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      # Spring Profile
+      - SPRING_PROFILES_ACTIVE=prod
+      
+      # Database Configuration (external managed service)
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_MAX_POOL_SIZE=${DATABASE_MAX_POOL_SIZE:-20}
+      - DATABASE_MIN_IDLE=${DATABASE_MIN_IDLE:-5}
+      - DATABASE_CONNECTION_TIMEOUT=${DATABASE_CONNECTION_TIMEOUT:-30000}
+      - DATABASE_IDLE_TIMEOUT=${DATABASE_IDLE_TIMEOUT:-600000}
+      - DATABASE_MAX_LIFETIME=${DATABASE_MAX_LIFETIME:-1800000}
+      
+      # Redis Configuration (external managed service)
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_SSL=${REDIS_SSL:-false}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT:-5000ms}
+      - REDIS_MAX_ACTIVE=${REDIS_MAX_ACTIVE:-20}
+      - REDIS_MAX_IDLE=${REDIS_MAX_IDLE:-10}
+      - REDIS_MIN_IDLE=${REDIS_MIN_IDLE:-2}
+      - REDIS_MAX_WAIT=${REDIS_MAX_WAIT:-5000ms}
+      - REDIS_REFRESH_PERIOD=${REDIS_REFRESH_PERIOD:-30s}
+      
+      # Cache Configuration
+      - CACHE_TTL=${CACHE_TTL:-3600s}
+      
+      # Weather API Configuration
+      - WEATHER_OPENWEATHERMAP_API_KEY=${WEATHER_OPENWEATHERMAP_API_KEY}
+      - WEATHER_OPENWEATHERMAP_BASE_URL=${WEATHER_OPENWEATHERMAP_BASE_URL:-https://api.openweathermap.org/data/2.5}
+      - WEATHER_OPENWEATHERMAP_UNITS=${WEATHER_OPENWEATHERMAP_UNITS:-metric}
+      - WEATHER_OPENWEATHERMAP_LANGUAGE=${WEATHER_OPENWEATHERMAP_LANGUAGE:-en}
+      - WEATHER_API_TIMEOUT=${WEATHER_API_TIMEOUT:-10000ms}
+      - WEATHER_RETRY_MAX_ATTEMPTS=${WEATHER_RETRY_MAX_ATTEMPTS:-3}
+      - WEATHER_RETRY_INITIAL_INTERVAL=${WEATHER_RETRY_INITIAL_INTERVAL:-1000ms}
+      - WEATHER_RETRY_MULTIPLIER=${WEATHER_RETRY_MULTIPLIER:-2.0}
+      - WEATHER_RETRY_MAX_INTERVAL=${WEATHER_RETRY_MAX_INTERVAL:-10000ms}
+      
+      # JWT Configuration
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+      
+      # Server Configuration
+      - SERVER_PORT=${SERVER_PORT:-8080}
+      
+      # Logging Configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - HEALTH_SHOW_DETAILS=${HEALTH_SHOW_DETAILS:-false}
+      
+      # Flyway Configuration
+      - FLYWAY_ENABLED=${FLYWAY_ENABLED:-true}
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network configuration
+    networks:
+      - weather-network
+
+# Production network
+networks:
+  weather-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

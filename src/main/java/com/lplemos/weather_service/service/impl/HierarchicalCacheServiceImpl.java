@@ -1,6 +1,7 @@
 package com.lplemos.weather_service.service.impl;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.lplemos.weather_service.exception.InvalidRequestException;
 import com.lplemos.weather_service.service.HierarchicalCacheService;
 import com.lplemos.weather_service.service.WeatherService;
 import com.lplemos.weather_service.service.WeatherServiceConstants;
@@ -44,6 +45,15 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
     
     @Override
     public Mono<Map<String, Object>> getCurrentWeather(String cityName, String providerType) {
+        // Validar parâmetros de entrada
+        if (cityName == null || cityName.trim().isEmpty()) {
+            return Mono.error(new InvalidRequestException("City name cannot be empty"));
+        }
+        
+        if (!cityName.matches("^[a-zA-ZÀ-ÿ\\s\\-']+$")) {
+            return Mono.error(new InvalidRequestException("City name can only contain letters, spaces, hyphens, and apostrophes"));
+        }
+        
         String cacheKey = cityName + "-current-" + providerType;
         logger.info("=== HierarchicalCache.getCurrentWeather START ===");
         logger.info("  City: {} | Provider: {} | CacheKey: {}", cityName, providerType, cacheKey);
@@ -100,6 +110,15 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
     
     @Override
     public Mono<Map<String, Object>> getWeatherForecast(String cityName, String providerType) {
+        // Validar parâmetros de entrada
+        if (cityName == null || cityName.trim().isEmpty()) {
+            return Mono.error(new InvalidRequestException("City name cannot be empty"));
+        }
+        
+        if (!cityName.matches("^[a-zA-ZÀ-ÿ\\s\\-']+$")) {
+            return Mono.error(new InvalidRequestException("City name can only contain letters, spaces, hyphens, and apostrophes"));
+        }
+        
         String cacheKey = cityName + "-forecast-" + providerType;
         logger.info("=== HierarchicalCache.getWeatherForecast START ===");
         logger.info("  City: {} | Provider: {} | CacheKey: {}", cityName, providerType, cacheKey);
@@ -326,17 +345,6 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
     private Mono<Map<String, Object>> getFromRedisCache(String key) {
         logger.debug("  getFromRedisCache: Checking key: {}", key);
         
-        // Simplificar drasticamente - sempre retornar empty por agora
-        return Mono.<Map<String, Object>>empty()
-                .doOnNext(result -> {
-                    logger.debug("  getFromRedisCache: doOnNext called with: {}", result);
-                })
-                .doOnSuccess(result -> {
-                    logger.debug("  getFromRedisCache: doOnSuccess called with: {}", result);
-                });
-        
-        /*
-        // CÓDIGO ORIGINAL - COMENTADO PARA REFERÊNCIA
         return Mono.fromCallable(() -> {
             logger.debug("  getFromRedisCache: Starting fromCallable for key: {}", key);
             try {
@@ -352,7 +360,6 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
                 
                 if (cache != null) {
                     logger.debug("  getFromRedisCache: Cache found, getting value...");
-                    logger.debug("  getFromRedisCache: About to call cache.get({})", key);
                     var value = cache.get(key);
                     logger.debug("  getFromRedisCache: Value retrieved: {}", value != null ? value.getClass().getSimpleName() : "NULL");
                     
@@ -372,18 +379,13 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
             logger.debug("  getFromRedisCache: Returning null");
             return null;
         })
-        .timeout(java.time.Duration.ofSeconds(2)) // Reduzir timeout para 2 segundos
         .doOnError(error -> {
-            logger.error("  getFromRedisCache: ❌ Timeout or error in Redis operation: {}", error.getMessage());
-        })
-        .doOnSuccess(result -> {
-            logger.debug("  getFromRedisCache: ✅ Operation completed successfully, result: {}", result != null ? "FOUND" : "NOT_FOUND");
+            logger.error("  getFromRedisCache: ❌ Error in Redis operation: {}", error.getMessage());
         })
         .onErrorResume(error -> {
             logger.error("  getFromRedisCache: ❌ Resuming from error: {}", error.getMessage());
-            return Mono.just(null); // Retornar null em vez de empty
+            return Mono.empty();
         });
-        */
     }
     
     private void putInLocalCache(String key, Map<String, Object> value) {

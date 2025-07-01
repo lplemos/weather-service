@@ -46,10 +46,11 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.TEST_ENDPOINT)
     public Mono<Map<String, Object>> testWeatherApi(
             @RequestParam(defaultValue = WeatherControllerConstants.DEFAULT_TEST_CITY) 
+            @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city) {
-        return weatherService.getCurrentWeather(city);
+        return hierarchicalCacheService.getCurrentWeather(city, "OPENWEATHERMAP");
     }
     
     /**
@@ -60,6 +61,7 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.CURRENT_ENDPOINT)
     public Mono<Map<String, Object>> getCurrentWeather(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city, 
@@ -67,11 +69,8 @@ public class WeatherController {
             @ValidProvider
             String provider) {
         
-        if (provider != null) {
-            WeatherProviderType providerType = WeatherProviderType.fromCode(provider);
-            return weatherService.getCurrentWeather(city, providerType);
-        }
-        return weatherService.getCurrentWeather(city);
+        String providerType = provider != null ? provider : "OPENWEATHERMAP";
+        return hierarchicalCacheService.getCurrentWeather(city, providerType);
     }
     
     /**
@@ -82,6 +81,7 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.CURRENT_STRUCTURED_ENDPOINT)
     public Mono<WeatherResponse> getCurrentWeatherStructured(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city,
@@ -104,6 +104,7 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.SUMMARY_ENDPOINT)
     public Mono<WeatherSummary> getWeatherSummary(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city,
@@ -126,6 +127,7 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.FORECAST_ENDPOINT)
     public Mono<Map<String, Object>> getWeatherForecast(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city,
@@ -133,11 +135,8 @@ public class WeatherController {
             @ValidProvider
             String provider) {
         
-        if (provider != null) {
-            WeatherProviderType providerType = WeatherProviderType.fromCode(provider);
-            return weatherService.getWeatherForecast(city, providerType);
-        }
-        return weatherService.getWeatherForecast(city);
+        String providerType = provider != null ? provider : "OPENWEATHERMAP";
+        return hierarchicalCacheService.getWeatherForecast(city, providerType);
     }
     
     /**
@@ -292,6 +291,7 @@ public class WeatherController {
     @GetMapping("/hierarchical/current")
     public Mono<Map<String, Object>> getCurrentWeatherHierarchical(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city,

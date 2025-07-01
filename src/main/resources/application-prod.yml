@@ -1,0 +1,105 @@
+# Production Configuration
+# This file contains production-specific settings using environment variables
+
+spring:
+  profiles:
+    active: prod
+  r2dbc:
+    url: ${DATABASE_URL:r2dbc:postgresql://localhost:5432/weatherdb}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:password}
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/weatherdb}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DATABASE_MAX_POOL_SIZE:20}
+      minimum-idle: ${DATABASE_MIN_IDLE:5}
+      connection-timeout: ${DATABASE_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DATABASE_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DATABASE_MAX_LIFETIME:1800000}
+  flyway:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/weatherdb}
+    user: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:password}
+    enabled: ${FLYWAY_ENABLED:true}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+      ssl: ${REDIS_SSL:false}
+      lettuce:
+        pool:
+          max-active: ${REDIS_MAX_ACTIVE:20}
+          max-idle: ${REDIS_MAX_IDLE:10}
+          min-idle: ${REDIS_MIN_IDLE:2}
+          max-wait: ${REDIS_MAX_WAIT:5000ms}
+        cluster:
+          refresh:
+            adaptive: true
+            period: ${REDIS_REFRESH_PERIOD:30s}
+
+# Production cache settings (longer TTL for better performance)
+spring:
+  cache:
+    redis:
+      time-to-live: ${CACHE_TTL:3600s} # 1 hour default
+      cache-null-values: false
+
+# Production logging (less verbose)
+logging:
+  level:
+    com.lplemos.weather_service: ${LOG_LEVEL:INFO}
+    org.springframework.r2dbc: WARN
+    org.flywaydb: INFO
+    org.springframework.web.reactive.function.client: WARN
+    reactor.netty.http.client: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Production management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: ${HEALTH_SHOW_DETAILS:false}
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Production security settings
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+# Production JWT settings
+jwt:
+  secret: ${JWT_SECRET:}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Production weather API settings
+weather:
+  openweathermap:
+    api-key: ${WEATHER_OPENWEATHERMAP_API_KEY:}
+    base-url: ${WEATHER_OPENWEATHERMAP_BASE_URL:https://api.openweathermap.org/data/2.5}
+    units: ${WEATHER_OPENWEATHERMAP_UNITS:metric}
+    language: ${WEATHER_OPENWEATHERMAP_LANGUAGE:en}
+    timeout: ${WEATHER_API_TIMEOUT:10000ms}
+    retry:
+      max-attempts: ${WEATHER_RETRY_MAX_ATTEMPTS:3}
+      backoff:
+        initial-interval: ${WEATHER_RETRY_INITIAL_INTERVAL:1000ms}
+        multiplier: ${WEATHER_RETRY_MULTIPLIER:2.0}
+        max-interval: ${WEATHER_RETRY_MAX_INTERVAL:10000ms} 

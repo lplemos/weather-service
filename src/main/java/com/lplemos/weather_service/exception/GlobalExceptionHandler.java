@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
@@ -121,6 +122,32 @@ public class GlobalExceptionHandler {
         ex.getFieldErrors().forEach(fieldError -> 
             fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage())
         );
+        errorResponse.put("fieldErrors", fieldErrors);
+        
+        return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+    }
+    
+    /**
+     * Handle HandlerMethodValidationException (method parameter validation errors)
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public Mono<ResponseEntity<Map<String, Object>>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+        logger.warn("Handler method validation error: {}", ex.getMessage());
+        
+        Map<String, Object> errorResponse = createErrorResponse(
+            "VALIDATION_ERROR",
+            "Request validation failed",
+            HttpStatus.BAD_REQUEST.value()
+        );
+        
+        // Add field-specific validation errors
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getAllValidationResults().forEach(result -> {
+            String fieldName = result.getMethodParameter().getParameterName();
+            String errorMessage = result.getResolvableErrors().isEmpty() ? 
+                "Invalid value" : result.getResolvableErrors().get(0).getDefaultMessage();
+            fieldErrors.put(fieldName, errorMessage);
+        });
         errorResponse.put("fieldErrors", fieldErrors);
         
         return Mono.just(ResponseEntity.badRequest().body(errorResponse));

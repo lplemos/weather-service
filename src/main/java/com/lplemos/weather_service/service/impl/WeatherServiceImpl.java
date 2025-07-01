@@ -1,5 +1,6 @@
 package com.lplemos.weather_service.service.impl;
 
+import com.lplemos.weather_service.exception.InvalidRequestException;
 import com.lplemos.weather_service.integrations.weather.WeatherProvider;
 import com.lplemos.weather_service.model.WeatherProviderType;
 import com.lplemos.weather_service.model.WeatherResponse;
@@ -30,9 +31,22 @@ public class WeatherServiceImpl implements WeatherService {
             weatherProviders.stream().map(WeatherProvider::getProviderName).collect(Collectors.toList()));
     }
     
+    // Método auxiliar para validar cidade
+    private void validateCityName(String cityName) {
+        if (cityName == null || cityName.trim().isEmpty()) {
+            throw new InvalidRequestException("City name cannot be empty");
+        }
+        
+        if (!cityName.matches("^[a-zA-ZÀ-ÿ\\s\\-']+$")) {
+            throw new InvalidRequestException("City name can only contain letters, spaces, hyphens, and apostrophes");
+        }
+    }
+    
     @Override
     @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "#cityName + '-' + #providerType.name()")
     public Mono<Map<String, Object>> getCurrentWeather(String cityName, WeatherProviderType providerType) {
+        validateCityName(cityName);
+        
         WeatherProvider provider = getProvider(providerType);
         logger.info(WeatherServiceConstants.LOG_FETCHING_WEATHER, cityName);
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
@@ -53,6 +67,8 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "#cityName + '-structured-' + #providerType.name()")
     public Mono<WeatherResponse> getCurrentWeatherStructured(String cityName, WeatherProviderType providerType) {
+        validateCityName(cityName);
+        
         WeatherProvider provider = getProvider(providerType);
         logger.info(WeatherServiceConstants.LOG_FETCHING_WEATHER, cityName);
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
@@ -73,6 +89,8 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "#cityName + '-summary-' + #providerType.name()")
     public Mono<WeatherSummary> getWeatherSummary(String cityName, WeatherProviderType providerType) {
+        validateCityName(cityName);
+        
         WeatherProvider provider = getProvider(providerType);
         logger.info(WeatherServiceConstants.LOG_FETCHING_WEATHER, cityName);
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
@@ -93,6 +111,8 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_FORECAST, key = "#cityName + '-' + #providerType.name()")
     public Mono<Map<String, Object>> getWeatherForecast(String cityName, WeatherProviderType providerType) {
+        validateCityName(cityName);
+        
         WeatherProvider provider = getProvider(providerType);
         logger.info(WeatherServiceConstants.LOG_FETCHING_FORECAST, cityName);
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
@@ -113,6 +133,10 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "'city-' + #cityId + '-' + #providerType.name()")
     public Mono<Map<String, Object>> getCurrentWeatherById(Integer cityId, WeatherProviderType providerType) {
+        if (cityId == null || cityId <= 0) {
+            throw new InvalidRequestException("City ID must be a positive number");
+        }
+        
         WeatherProvider provider = getProvider(providerType);
         logger.info(WeatherServiceConstants.LOG_FETCHING_WEATHER, "City ID: " + cityId);
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
