@@ -23,6 +23,45 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  weather-service:
+    build:
+      context: ./weather-service
+      dockerfile: Dockerfile
+    container_name: weather-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_HOST: postgres
+      SPRING_DATASOURCE_PORT: 5432
+      SPRING_DATASOURCE_DB: weatherdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      WEATHER_OPENWEATHERMAP_API_KEY: ${WEATHER_OPENWEATHERMAP_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      JWT_SECRET: ${JWT_SECRET}
+      WEATHER_SERVICE_HOST: weather-service
+      WEATHER_SERVICE_PORT: 8081
+    ports:
+      - "8080:8080"
+    depends_on:
+      - weather-service
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data: 

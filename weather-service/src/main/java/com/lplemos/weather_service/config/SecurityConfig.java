@@ -18,6 +18,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeExchange(authz -> authz
                 .pathMatchers("/auth/**").permitAll()
+                // Public weather endpoints
+                .pathMatchers("/api/v1/weather/current/**").permitAll()
+                .pathMatchers("/api/v1/weather/forecast/**").permitAll()
+                .pathMatchers("/api/v1/weather/summary/**").permitAll()
+                .pathMatchers("/api/v1/weather/version/**").permitAll()
+                .pathMatchers("/api/v1/weather/status/**").permitAll()
+                .pathMatchers("/api/v1/weather/providers/**").permitAll()
+                .pathMatchers("/api/v1/weather/test/**").permitAll()
                 // Cache read endpoints - accessible to USER and ADMIN
                 .pathMatchers("/api/v1/weather/cache/stats").hasAnyRole("USER", "ADMIN")
                 .pathMatchers("/api/v1/weather/cache/health").hasAnyRole("USER", "ADMIN")
@@ -28,7 +36,7 @@ public class SecurityConfig {
                 .pathMatchers("/api/v1/weather/cache/all").hasRole("ADMIN")
                 .pathMatchers("/api/v1/weather/hierarchical/cache/city").hasRole("ADMIN")
                 .pathMatchers("/api/v1/weather/hierarchical/cache/all").hasRole("ADMIN")
-                // Weather data endpoints - accessible to USER and ADMIN
+                // Other weather endpoints - accessible to USER and ADMIN
                 .pathMatchers("/api/v1/weather/**").hasAnyRole("USER", "ADMIN")
                 .anyExchange().authenticated()
             )

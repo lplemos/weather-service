@@ -9,6 +9,9 @@ spring:
       time-to-live: ${CACHE_TTL:1800s} # 30 minutes default
       cache-null-values: false
 
+server:
+  port: ${SERVER_PORT:8081}
+
 # Weather API Configuration
 # The actual API key will be loaded from application-local.yml
 weather:
@@ -20,7 +23,7 @@ weather:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:your-super-secret-jwt-key-that-is-at-least-32-characters-long}
+  secret: ${JWT_SECRET:}
   expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
 
 management:

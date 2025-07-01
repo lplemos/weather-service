@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: weather-service
+          uri: http://${WEATHER_SERVICE_HOST:localhost}:${WEATHER_SERVICE_PORT:8081}
+          predicates:
+            - Path=/api/v1/weather/**
+          filters:
+            - StripPrefix=0
+        - id: actuator
+          uri: http://${WEATHER_SERVICE_HOST:localhost}:${WEATHER_SERVICE_PORT:8081}
+          predicates:
+            - Path=/actuator/**
+          filters:
+            - StripPrefix=0
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:} 

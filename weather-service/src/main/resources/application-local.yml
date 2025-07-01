@@ -2,25 +2,23 @@
 # This file contains local-specific overrides for development
 
 spring:
-  profiles:
-    active: local
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/weatherdb
-    username: postgres
-    password: password
+    url: r2dbc:postgresql://${SPRING_DATASOURCE_HOST:localhost}:${SPRING_DATASOURCE_PORT:5432}/${SPRING_DATASOURCE_DB:weatherdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
   datasource:
-    url: jdbc:postgresql://localhost:5432/weatherdb
-    username: postgres
-    password: password
+    url: jdbc:postgresql://${SPRING_DATASOURCE_HOST:localhost}:${SPRING_DATASOURCE_PORT:5432}/${SPRING_DATASOURCE_DB:weatherdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
   flyway:
-    url: jdbc:postgresql://localhost:5432/weatherdb
-    user: postgres
-    password: password
+    url: jdbc:postgresql://${SPRING_DATASOURCE_HOST:localhost}:${SPRING_DATASOURCE_PORT:5432}/${SPRING_DATASOURCE_DB:weatherdb}
+    user: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
       timeout: 2000ms
       lettuce:
         pool:
@@ -28,6 +26,9 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
+  cache:
+    redis:
+      time-to-live: 300s # 5 minutes for faster development feedback
 
 # Local-specific logging
 logging:
@@ -37,12 +38,6 @@ logging:
     org.flywaydb: DEBUG
     org.springframework.web.reactive.function.client: DEBUG
     reactor.netty.http.client: DEBUG
-
-# Local cache settings (shorter TTL for development)
-spring:
-  cache:
-    redis:
-      time-to-live: 300s # 5 minutes for faster development feedback
 
 # Local development configuration
 # This file should NEVER be committed to Git
