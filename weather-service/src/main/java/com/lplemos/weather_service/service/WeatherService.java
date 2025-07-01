@@ -26,6 +26,11 @@ public interface WeatherService {
     Mono<Map<String, Object>> getCurrentWeather(String cityName, WeatherProviderType providerType);
     
     /**
+     * Get current weather using a specific provider and language
+     */
+    Mono<Map<String, Object>> getCurrentWeather(String cityName, WeatherProviderType providerType, String language);
+    
+    /**
      * Get current weather (structured) using the default provider
      */
     Mono<WeatherResponse> getCurrentWeatherStructured(String cityName);
@@ -56,6 +61,11 @@ public interface WeatherService {
     Mono<Map<String, Object>> getWeatherForecast(String cityName, WeatherProviderType providerType);
     
     /**
+     * Get weather forecast using a specific provider and language
+     */
+    Mono<Map<String, Object>> getWeatherForecast(String cityName, WeatherProviderType providerType, String language);
+    
+    /**
      * Get current weather by city ID using the default provider
      */
     Mono<Map<String, Object>> getCurrentWeatherById(Integer cityId);
@@ -66,7 +76,47 @@ public interface WeatherService {
     Mono<Map<String, Object>> getCurrentWeatherById(Integer cityId, WeatherProviderType providerType);
     
     /**
-     * Get available weather providers
+     * Get current weather by coordinates using the default provider
+     */
+    Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon);
+    
+    /**
+     * Get current weather by coordinates using a specific provider
+     */
+    Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, WeatherProviderType providerType);
+    
+    /**
+     * Get current weather by coordinates using a specific provider and language
+     */
+    Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, WeatherProviderType providerType, String language);
+    
+    /**
+     * Get weather forecast by coordinates using the default provider
+     */
+    Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon);
+    
+    /**
+     * Get weather forecast by coordinates using a specific provider
+     */
+    Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, WeatherProviderType providerType);
+    
+    /**
+     * Get weather forecast by coordinates using a specific provider and language
+     */
+    Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, WeatherProviderType providerType, String language);
+    
+    /**
+     * Get the default weather provider
+     */
+    WeatherProvider getDefaultProvider();
+    
+    /**
+     * Get a specific weather provider
+     */
+    WeatherProvider getProvider(WeatherProviderType providerType);
+    
+    /**
+     * Get list of available providers
      */
     List<String> getAvailableProviders();
     
@@ -74,9 +124,4 @@ public interface WeatherService {
      * Check if a specific provider is available
      */
     Mono<Boolean> isProviderAvailable(WeatherProviderType providerType);
-    
-    /**
-     * Get the default provider (OpenWeatherMap)
-     */
-    WeatherProvider getDefaultProvider();
 } 

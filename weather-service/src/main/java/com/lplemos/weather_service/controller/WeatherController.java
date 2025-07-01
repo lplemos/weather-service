@@ -10,6 +10,7 @@ import com.lplemos.weather_service.service.HierarchicalCacheService;
 import com.lplemos.weather_service.service.WeatherService;
 import com.lplemos.weather_service.validation.ValidProvider;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -45,32 +46,61 @@ public class WeatherController {
      */
     @GetMapping(WeatherControllerConstants.TEST_ENDPOINT)
     public Mono<Map<String, Object>> testWeatherApi(
-            @RequestParam(defaultValue = WeatherControllerConstants.DEFAULT_TEST_CITY) 
+            @RequestParam(defaultValue = WeatherControllerConstants.DEFAULT_TEST_CITY)
             @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
-            String city) {
-        return hierarchicalCacheService.getCurrentWeather(city, "OPENWEATHERMAP");
+            String city,
+            @RequestParam(value = "lang", required = false, defaultValue = "en")
+            @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a 2-letter code (e.g., en, pt, es)")
+            String language) {
+        return hierarchicalCacheService.getCurrentWeather(city, "OPENWEATHERMAP", language);
     }
     
     /**
      * Get current weather for a city (raw response)
      * GET /api/v1/weather/current?city=Lisbon
-     * GET /api/v1/weather/current?city=Lisbon&provider=openweathermap
+     * GET /api/v1/weather/current?city=Lisbon&provider=openweathermap&lang=pt
      */
     @GetMapping(WeatherControllerConstants.CURRENT_ENDPOINT)
     public Mono<Map<String, Object>> getCurrentWeather(
-            @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @RequestParam(value = WeatherControllerConstants.PARAM_CITY, required = false) 
             @Valid
-            @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
-            String city, 
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']*$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            String city,
+            @RequestParam(value = "lat", required = false)
+            @Valid
+            @Min(value = -90, message = "Latitude must be between -90 and 90")
+            @Max(value = 90, message = "Latitude must be between -90 and 90")
+            Double lat,
+            @RequestParam(value = "lon", required = false)
+            @Valid
+            @Min(value = -180, message = "Longitude must be between -180 and 180")
+            @Max(value = 180, message = "Longitude must be between -180 and 180")
+            Double lon,
             @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, required = false)
             @ValidProvider
-            String provider) {
+            String provider,
+            @RequestParam(value = "lang", required = false, defaultValue = "en")
+            @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a 2-letter code (e.g., en, pt, es)")
+            String language) {
+        
+        // Validate that either city or coordinates are provided
+        if ((city == null || city.trim().isEmpty()) && (lat == null || lon == null)) {
+            return Mono.error(new IllegalArgumentException("Either city name or coordinates (lat, lon) must be provided"));
+        }
+        
+        if (city != null && !city.trim().isEmpty() && (lat != null || lon != null)) {
+            return Mono.error(new IllegalArgumentException("Cannot provide both city name and coordinates"));
+        }
         
         String providerType = provider != null ? provider : "OPENWEATHERMAP";
-        return hierarchicalCacheService.getCurrentWeather(city, providerType);
+        
+        if (lat != null && lon != null) {
+            return hierarchicalCacheService.getCurrentWeatherByCoords(lat, lon, providerType, language);
+        } else {
+            return hierarchicalCacheService.getCurrentWeather(city, providerType, language);
+        }
     }
     
     /**
@@ -122,21 +152,47 @@ public class WeatherController {
     /**
      * Get 5-day weather forecast for a city
      * GET /api/v1/weather/forecast?city=Porto
-     * GET /api/v1/weather/forecast?city=Porto&provider=openweathermap
+     * GET /api/v1/weather/forecast?city=Porto&provider=openweathermap&lang=pt
      */
     @GetMapping(WeatherControllerConstants.FORECAST_ENDPOINT)
     public Mono<Map<String, Object>> getWeatherForecast(
-            @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @RequestParam(value = WeatherControllerConstants.PARAM_CITY, required = false) 
             @Valid
-            @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']*$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city,
+            @RequestParam(value = "lat", required = false)
+            @Valid
+            @Min(value = -90, message = "Latitude must be between -90 and 90")
+            @Max(value = 90, message = "Latitude must be between -90 and 90")
+            Double lat,
+            @RequestParam(value = "lon", required = false)
+            @Valid
+            @Min(value = -180, message = "Longitude must be between -180 and 180")
+            @Max(value = 180, message = "Longitude must be between -180 and 180")
+            Double lon,
             @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, required = false)
             @ValidProvider
-            String provider) {
+            String provider,
+            @RequestParam(value = "lang", required = false, defaultValue = "en")
+            @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a 2-letter code (e.g., en, pt, es)")
+            String language) {
+        
+        // Validate that either city or coordinates are provided
+        if ((city == null || city.trim().isEmpty()) && (lat == null || lon == null)) {
+            return Mono.error(new IllegalArgumentException("Either city name or coordinates (lat, lon) must be provided"));
+        }
+        
+        if (city != null && !city.trim().isEmpty() && (lat != null || lon != null)) {
+            return Mono.error(new IllegalArgumentException("Cannot provide both city name and coordinates"));
+        }
         
         String providerType = provider != null ? provider : "OPENWEATHERMAP";
-        return hierarchicalCacheService.getWeatherForecast(city, providerType);
+        
+        if (lat != null && lon != null) {
+            return hierarchicalCacheService.getWeatherForecastByCoords(lat, lon, providerType, language);
+        } else {
+            return hierarchicalCacheService.getWeatherForecast(city, providerType, language);
+        }
     }
     
     /**
@@ -285,36 +341,42 @@ public class WeatherController {
     }
     
     /**
-     * Get current weather using hierarchical cache
-     * GET /api/v1/weather/hierarchical/current?city=Lisbon&provider=openweathermap
+     * Get current weather (hierarchical) for a city
+     * GET /api/v1/weather/hierarchical/current?city=Lisbon&provider=openweathermap&lang=pt
      */
     @GetMapping("/hierarchical/current")
     public Mono<Map<String, Object>> getCurrentWeatherHierarchical(
-            @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @RequestParam(WeatherControllerConstants.PARAM_CITY)
             @Valid
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city,
-            @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, defaultValue = "OPENWEATHERMAP") 
+            @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, defaultValue = "OPENWEATHERMAP")
             @ValidProvider
-            String provider) {
-        return hierarchicalCacheService.getCurrentWeather(city, provider);
+            String provider,
+            @RequestParam(value = "lang", required = false, defaultValue = "en")
+            @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a 2-letter code (e.g., en, pt, es)")
+            String language) {
+        return hierarchicalCacheService.getCurrentWeather(city, provider, language);
     }
-    
+
     /**
-     * Get weather forecast using hierarchical cache
-     * GET /api/v1/weather/hierarchical/forecast?city=Lisbon&provider=openweathermap
+     * Get weather forecast (hierarchical) for a city
+     * GET /api/v1/weather/hierarchical/forecast?city=Lisbon&provider=openweathermap&lang=pt
      */
     @GetMapping("/hierarchical/forecast")
     public Mono<Map<String, Object>> getWeatherForecastHierarchical(
-            @RequestParam(WeatherControllerConstants.PARAM_CITY) 
+            @RequestParam(WeatherControllerConstants.PARAM_CITY)
             @NotBlank(message = "City name cannot be empty")
             @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
             String city,
-            @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, defaultValue = "OPENWEATHERMAP") 
+            @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, defaultValue = "OPENWEATHERMAP")
             @ValidProvider
-            String provider) {
-        return hierarchicalCacheService.getWeatherForecast(city, provider);
+            String provider,
+            @RequestParam(value = "lang", required = false, defaultValue = "en")
+            @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a 2-letter code (e.g., en, pt, es)")
+            String language) {
+        return hierarchicalCacheService.getWeatherForecast(city, provider, language);
     }
     
     /**

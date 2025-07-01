@@ -38,5 +38,7 @@ public final class OpenWeatherMapConstants {
     public static final String REQUEST_TYPE_CURRENT_WEATHER = "current weather";
     public static final String REQUEST_TYPE_STRUCTURED_WEATHER = "structured weather";
     public static final String REQUEST_TYPE_FORECAST = "forecast";
-    public static final String REQUEST_TYPE_WEATHER_BY_ID = "current weather by ID";
+    public static final String REQUEST_TYPE_WEATHER_BY_ID = "weather by ID";
+    public static final String REQUEST_TYPE_WEATHER_BY_COORDS = "weather by coordinates";
+    public static final String REQUEST_TYPE_FORECAST_BY_COORDS = "forecast by coordinates";
 } 

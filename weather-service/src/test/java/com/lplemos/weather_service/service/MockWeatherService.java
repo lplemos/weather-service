@@ -71,6 +71,55 @@ public class MockWeatherService implements WeatherService {
     }
     
     @Override
+    public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon) {
+        return Mono.just(createMockWeatherData("Mock City at " + lat + "," + lon));
+    }
+    
+    @Override
+    public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, WeatherProviderType providerType) {
+        return Mono.just(createMockWeatherData("Mock City at " + lat + "," + lon));
+    }
+    
+    @Override
+    public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon) {
+        return Mono.just(createMockForecastData("Mock City at " + lat + "," + lon));
+    }
+    
+    @Override
+    public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, WeatherProviderType providerType) {
+        return Mono.just(createMockForecastData("Mock City at " + lat + "," + lon));
+    }
+    
+    @Override
+    public reactor.core.publisher.Mono<java.util.Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, com.lplemos.weather_service.model.WeatherProviderType providerType, String language) {
+        // Mock: retorna um Mono vazio ou um mapa simulado
+        return reactor.core.publisher.Mono.empty();
+    }
+    
+    @Override
+    public reactor.core.publisher.Mono<java.util.Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, com.lplemos.weather_service.model.WeatherProviderType providerType, String language) {
+        // Mock: retorna um Mono vazio ou um mapa simulado
+        return reactor.core.publisher.Mono.empty();
+    }
+    
+    @Override
+    public reactor.core.publisher.Mono<java.util.Map<String, Object>> getWeatherForecast(String cityName, com.lplemos.weather_service.model.WeatherProviderType providerType, String language) {
+        // Mock: retorna um Mono vazio ou um mapa simulado
+        return reactor.core.publisher.Mono.empty();
+    }
+    
+    @Override
+    public reactor.core.publisher.Mono<java.util.Map<String, Object>> getCurrentWeather(String cityName, com.lplemos.weather_service.model.WeatherProviderType providerType, String language) {
+        // Mock: retorna um Mono vazio ou um mapa simulado
+        return reactor.core.publisher.Mono.empty();
+    }
+    
+    @Override
+    public WeatherProvider getProvider(WeatherProviderType providerType) {
+        return new MockWeatherProvider();
+    }
+    
+    @Override
     public List<String> getAvailableProviders() {
         return List.of("MockProvider", "OpenWeatherMap");
     }
@@ -161,7 +210,17 @@ public class MockWeatherService implements WeatherService {
         }
         
         @Override
+        public Mono<Map<String, Object>> getCurrentWeather(String cityName, String language) {
+            return Mono.just(Map.of("name", cityName, "temp", 25.0, "language", language));
+        }
+        
+        @Override
         public Mono<WeatherResponse> getCurrentWeatherStructured(String cityName) {
+            return Mono.empty();
+        }
+        
+        @Override
+        public Mono<WeatherResponse> getCurrentWeatherStructured(String cityName, String language) {
             return Mono.empty();
         }
         
@@ -171,13 +230,48 @@ public class MockWeatherService implements WeatherService {
         }
         
         @Override
+        public Mono<WeatherSummary> getWeatherSummary(String cityName, String language) {
+            return Mono.empty();
+        }
+        
+        @Override
         public Mono<Map<String, Object>> getWeatherForecast(String cityName) {
             return Mono.just(Map.of("city", cityName));
         }
         
         @Override
+        public Mono<Map<String, Object>> getWeatherForecast(String cityName, String language) {
+            return Mono.just(Map.of("city", cityName, "language", language));
+        }
+        
+        @Override
         public Mono<Map<String, Object>> getCurrentWeatherById(Integer cityId) {
             return Mono.just(Map.of("id", cityId, "temp", 25.0));
+        }
+        
+        @Override
+        public Mono<Map<String, Object>> getCurrentWeatherById(Integer cityId, String language) {
+            return Mono.just(Map.of("id", cityId, "temp", 25.0, "language", language));
+        }
+        
+        @Override
+        public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon) {
+            return Mono.just(Map.of("name", "Mock City at " + lat + "," + lon, "temp", 25.0));
+        }
+        
+        @Override
+        public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, String language) {
+            return Mono.just(Map.of("name", "Mock City at " + lat + "," + lon, "temp", 25.0, "language", language));
+        }
+        
+        @Override
+        public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon) {
+            return Mono.just(Map.of("city", "Mock City at " + lat + "," + lon));
+        }
+        
+        @Override
+        public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, String language) {
+            return Mono.just(Map.of("city", "Mock City at " + lat + "," + lon, "language", language));
         }
         
         @Override

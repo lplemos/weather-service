@@ -1,5 +1,6 @@
 package com.lplemos.weather_service.service.impl;
 
+import com.lplemos.weather_service.config.WeatherApiConfig;
 import com.lplemos.weather_service.exception.InvalidRequestException;
 import com.lplemos.weather_service.integrations.weather.WeatherProvider;
 import com.lplemos.weather_service.model.WeatherProviderType;
@@ -22,9 +23,11 @@ public class WeatherServiceImpl implements WeatherService {
     
     private static final Logger logger = LoggerFactory.getLogger(WeatherServiceImpl.class);
     private final List<WeatherProvider> weatherProviders;
+    private final WeatherApiConfig weatherApiConfig;
     
-    public WeatherServiceImpl(List<WeatherProvider> weatherProviders) {
+    public WeatherServiceImpl(List<WeatherProvider> weatherProviders, WeatherApiConfig weatherApiConfig) {
         this.weatherProviders = weatherProviders;
+        this.weatherApiConfig = weatherApiConfig;
         logger.info("{} WeatherServiceImpl initialized with {} providers: {}", 
             WeatherServiceConstants.LOG_PREFIX,
             weatherProviders.size(), 
@@ -43,20 +46,28 @@ public class WeatherServiceImpl implements WeatherService {
     }
     
     @Override
-    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "#cityName + '-' + #providerType.name()")
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "'city-' + #cityName + '-' + #providerType.name()")
     public Mono<Map<String, Object>> getCurrentWeather(String cityName, WeatherProviderType providerType) {
-        validateCityName(cityName);
+        return getCurrentWeather(cityName, providerType, null);
+    }
+    
+    @Override
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "'city-' + #cityName + '-' + #providerType.name() + '-' + #language")
+    public Mono<Map<String, Object>> getCurrentWeather(String cityName, WeatherProviderType providerType, String language) {
+        if (cityName == null || cityName.trim().isEmpty()) {
+            throw new InvalidRequestException("City name cannot be empty");
+        }
+        
+        if (!cityName.matches("^[a-zA-ZÀ-ÿ\\s\\-']+$")) {
+            throw new InvalidRequestException("City name can only contain letters, spaces, hyphens, and apostrophes");
+        }
         
         WeatherProvider provider = getProvider(providerType);
-        logger.info(WeatherServiceConstants.LOG_FETCHING_WEATHER, cityName);
-        logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
-            WeatherServiceConstants.LOG_PREFIX, providerType.getDisplayName(), cityName);
         
-        return provider.getCurrentWeather(cityName)
-                .doOnError(error -> {
-                    logger.error(WeatherServiceConstants.LOG_ERROR_PROCESSING, 
-                        WeatherServiceConstants.LOG_PREFIX, cityName, error.getMessage());
-                });
+        // Use configured language if language parameter is null
+        String finalLanguage = language != null ? language : weatherApiConfig.getLanguage();
+        
+        return provider.getCurrentWeather(cityName, finalLanguage);
     }
     
     @Override
@@ -74,7 +85,7 @@ public class WeatherServiceImpl implements WeatherService {
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
             WeatherServiceConstants.LOG_PREFIX, providerType.getDisplayName(), cityName);
         
-        return provider.getCurrentWeatherStructured(cityName)
+        return provider.getCurrentWeatherStructured(cityName, weatherApiConfig.getLanguage())
                 .doOnError(error -> {
                     logger.error(WeatherServiceConstants.LOG_ERROR_PROCESSING, 
                         WeatherServiceConstants.LOG_PREFIX, cityName, error.getMessage());
@@ -96,7 +107,7 @@ public class WeatherServiceImpl implements WeatherService {
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
             WeatherServiceConstants.LOG_PREFIX, providerType.getDisplayName(), cityName);
         
-        return provider.getWeatherSummary(cityName)
+        return provider.getWeatherSummary(cityName, weatherApiConfig.getLanguage())
                 .doOnError(error -> {
                     logger.error(WeatherServiceConstants.LOG_ERROR_PROCESSING, 
                         WeatherServiceConstants.LOG_PREFIX, cityName, error.getMessage());
@@ -109,20 +120,28 @@ public class WeatherServiceImpl implements WeatherService {
     }
     
     @Override
-    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_FORECAST, key = "#cityName + '-' + #providerType.name()")
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_FORECAST, key = "'city-' + #cityName + '-' + #providerType.name()")
     public Mono<Map<String, Object>> getWeatherForecast(String cityName, WeatherProviderType providerType) {
-        validateCityName(cityName);
+        return getWeatherForecast(cityName, providerType, null);
+    }
+    
+    @Override
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_FORECAST, key = "'city-' + #cityName + '-' + #providerType.name() + '-' + #language")
+    public Mono<Map<String, Object>> getWeatherForecast(String cityName, WeatherProviderType providerType, String language) {
+        if (cityName == null || cityName.trim().isEmpty()) {
+            throw new InvalidRequestException("City name cannot be empty");
+        }
+        
+        if (!cityName.matches("^[a-zA-ZÀ-ÿ\\s\\-']+$")) {
+            throw new InvalidRequestException("City name can only contain letters, spaces, hyphens, and apostrophes");
+        }
         
         WeatherProvider provider = getProvider(providerType);
-        logger.info(WeatherServiceConstants.LOG_FETCHING_FORECAST, cityName);
-        logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
-            WeatherServiceConstants.LOG_PREFIX, providerType.getDisplayName(), cityName);
         
-        return provider.getWeatherForecast(cityName)
-                .doOnError(error -> {
-                    logger.error(WeatherServiceConstants.LOG_ERROR_PROCESSING, 
-                        WeatherServiceConstants.LOG_PREFIX, cityName, error.getMessage());
-                });
+        // Use configured language if language parameter is null
+        String finalLanguage = language != null ? language : weatherApiConfig.getLanguage();
+        
+        return provider.getWeatherForecast(cityName, finalLanguage);
     }
     
     @Override
@@ -142,7 +161,7 @@ public class WeatherServiceImpl implements WeatherService {
         logger.info(WeatherServiceConstants.LOG_PROVIDER_SELECTED, 
             WeatherServiceConstants.LOG_PREFIX, providerType.getDisplayName(), cityId);
         
-        return provider.getCurrentWeatherById(cityId)
+        return provider.getCurrentWeatherById(cityId, weatherApiConfig.getLanguage())
                 .doOnError(error -> {
                     logger.error(WeatherServiceConstants.LOG_ERROR_PROCESSING, 
                         WeatherServiceConstants.LOG_PREFIX, cityId, error.getMessage());
@@ -152,6 +171,74 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     public Mono<Map<String, Object>> getCurrentWeatherById(Integer cityId) {
         return getCurrentWeatherById(cityId, WeatherProviderType.OPENWEATHERMAP);
+    }
+    
+    @Override
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "'coords-' + #lat + ',' + #lon + '-' + #providerType.name()")
+    public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, WeatherProviderType providerType) {
+        return getCurrentWeatherByCoords(lat, lon, providerType, null);
+    }
+    
+    @Override
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_CURRENT, key = "'coords-' + #lat + ',' + #lon + '-' + #providerType.name() + '-' + #language")
+    public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, WeatherProviderType providerType, String language) {
+        if (lat == null || lon == null) {
+            throw new InvalidRequestException("Latitude and longitude cannot be null");
+        }
+        
+        if (lat < -90 || lat > 90) {
+            throw new InvalidRequestException("Latitude must be between -90 and 90");
+        }
+        
+        if (lon < -180 || lon > 180) {
+            throw new InvalidRequestException("Longitude must be between -180 and 180");
+        }
+        
+        WeatherProvider provider = getProvider(providerType);
+        
+        // Use configured language if language parameter is null
+        String finalLanguage = language != null ? language : weatherApiConfig.getLanguage();
+        
+        return provider.getCurrentWeatherByCoords(lat, lon, finalLanguage);
+    }
+    
+    @Override
+    public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon) {
+        return getCurrentWeatherByCoords(lat, lon, WeatherProviderType.OPENWEATHERMAP);
+    }
+    
+    @Override
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_FORECAST, key = "'coords-' + #lat + ',' + #lon + '-' + #providerType.name()")
+    public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, WeatherProviderType providerType) {
+        return getWeatherForecastByCoords(lat, lon, providerType, null);
+    }
+    
+    @Override
+    @Cacheable(value = WeatherServiceConstants.CACHE_WEATHER_FORECAST, key = "'coords-' + #lat + ',' + #lon + '-' + #providerType.name() + '-' + #language")
+    public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, WeatherProviderType providerType, String language) {
+        if (lat == null || lon == null) {
+            throw new InvalidRequestException("Latitude and longitude cannot be null");
+        }
+        
+        if (lat < -90 || lat > 90) {
+            throw new InvalidRequestException("Latitude must be between -90 and 90");
+        }
+        
+        if (lon < -180 || lon > 180) {
+            throw new InvalidRequestException("Longitude must be between -180 and 180");
+        }
+        
+        WeatherProvider provider = getProvider(providerType);
+        
+        // Use configured language if language parameter is null
+        String finalLanguage = language != null ? language : weatherApiConfig.getLanguage();
+        
+        return provider.getWeatherForecastByCoords(lat, lon, finalLanguage);
+    }
+    
+    @Override
+    public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon) {
+        return getWeatherForecastByCoords(lat, lon, WeatherProviderType.OPENWEATHERMAP);
     }
     
     @Override
@@ -175,7 +262,9 @@ public class WeatherServiceImpl implements WeatherService {
         return getProvider(WeatherProviderType.OPENWEATHERMAP);
     }
     
-    private WeatherProvider getProvider(WeatherProviderType providerType) {
+    
+    @Override
+    public WeatherProvider getProvider(WeatherProviderType providerType) {
         return weatherProviders.stream()
                 .filter(provider -> provider.getProviderName().equals(providerType.getDisplayName()))
                 .findFirst()

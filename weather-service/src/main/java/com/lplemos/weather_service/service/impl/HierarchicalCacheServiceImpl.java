@@ -2,6 +2,7 @@ package com.lplemos.weather_service.service.impl;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.lplemos.weather_service.exception.InvalidRequestException;
+import com.lplemos.weather_service.model.WeatherProviderType;
 import com.lplemos.weather_service.service.HierarchicalCacheService;
 import com.lplemos.weather_service.service.WeatherService;
 import com.lplemos.weather_service.service.WeatherServiceConstants;
@@ -44,7 +45,7 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
     }
     
     @Override
-    public Mono<Map<String, Object>> getCurrentWeather(String cityName, String providerType) {
+    public Mono<Map<String, Object>> getCurrentWeather(String cityName, String providerType, String language) {
         // Validar parâmetros de entrada
         if (cityName == null || cityName.trim().isEmpty()) {
             return Mono.error(new InvalidRequestException("City name cannot be empty"));
@@ -54,13 +55,15 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
             return Mono.error(new InvalidRequestException("City name can only contain letters, spaces, hyphens, and apostrophes"));
         }
         
-        String cacheKey = cityName + "-current-" + providerType;
+        String cacheKey = cityName + "-current-" + providerType + "-" + language;
         logger.info("=== HierarchicalCache.getCurrentWeather START ===");
-        logger.info("  City: {} | Provider: {} | CacheKey: {}", cityName, providerType, cacheKey);
+        logger.info("  City: {} | Provider: {} | Language: {} | CacheKey: {}", cityName, providerType, language, cacheKey);
+        
         if (weatherService == null) {
             logger.error("HierarchicalCache: WeatherService is null!");
             return Mono.error(new IllegalStateException("WeatherService not injected"));
         }
+        
         return Mono.defer(() -> {
             Map<String, Object> localResult = getFromLocalCache(cacheKey);
             if (localResult != null) {
@@ -77,7 +80,8 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
                         }
                         logger.info("  Redis cache MISS for key: {}", cacheKey);
                         logger.info("  Calling external API for city: {}", cityName);
-                        return weatherService.getCurrentWeather(cityName)
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getCurrentWeather(cityName, providerTypeEnum, language)
                                 .flatMap(apiResult -> {
                                     logger.info("  API call SUCCESS for city: {}", cityName);
                                     putInLocalCache(cacheKey, apiResult);
@@ -89,9 +93,10 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
                                 });
                     })
                     .switchIfEmpty(Mono.defer(() -> {
-                        logger.info("  Redis cache MISS for key: {} (switchIfEmpty)", cacheKey);
+                        logger.info("  Redis cache MISS for key: {}", cacheKey);
                         logger.info("  Calling external API for city: {}", cityName);
-                        return weatherService.getCurrentWeather(cityName)
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getCurrentWeather(cityName, providerTypeEnum, language)
                                 .flatMap(apiResult -> {
                                     logger.info("  API call SUCCESS for city: {}", cityName);
                                     putInLocalCache(cacheKey, apiResult);
@@ -101,15 +106,81 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
                                 .doOnError(error -> {
                                     logger.error("  API call FAILED for city: {}", cityName, error);
                                 });
-                    }))
-                    .doOnError(error -> {
-                        logger.error("  Redis cache check FAILED for key: {}", cacheKey, error);
-                    });
+                    }));
         });
     }
     
     @Override
-    public Mono<Map<String, Object>> getWeatherForecast(String cityName, String providerType) {
+    public Mono<Map<String, Object>> getCurrentWeatherByCoords(Double lat, Double lon, String providerType, String language) {
+        if (lat == null || lon == null) {
+            return Mono.error(new InvalidRequestException("Latitude and longitude cannot be null"));
+        }
+        
+        if (lat < -90 || lat > 90) {
+            return Mono.error(new InvalidRequestException("Latitude must be between -90 and 90"));
+        }
+        
+        if (lon < -180 || lon > 180) {
+            return Mono.error(new InvalidRequestException("Longitude must be between -180 and 180"));
+        }
+        
+        String cacheKey = String.format("coords-%.6f,%.6f-current-%s-%s", lat, lon, providerType, language);
+        logger.info("=== HierarchicalCache.getCurrentWeatherByCoords START ===");
+        logger.info("  Coords: ({}, {}) | Provider: {} | Language: {} | CacheKey: {}", lat, lon, providerType, language, cacheKey);
+        
+        if (weatherService == null) {
+            logger.error("HierarchicalCache: WeatherService is null!");
+            return Mono.error(new IllegalStateException("WeatherService not injected"));
+        }
+        
+        return Mono.defer(() -> {
+            Map<String, Object> localResult = getFromLocalCache(cacheKey);
+            if (localResult != null) {
+                logger.info("  Local cache HIT for key: {}", cacheKey);
+                return Mono.just(localResult);
+            }
+            logger.info("  Local cache MISS for key: {}", cacheKey);
+            return getFromRedisCache(cacheKey)
+                    .flatMap(redisResult -> {
+                        if (redisResult != null) {
+                            logger.info("  Redis cache HIT for key: {}", cacheKey);
+                            putInLocalCache(cacheKey, redisResult);
+                            return Mono.just(redisResult);
+                        }
+                        logger.info("  Redis cache MISS for key: {}", cacheKey);
+                        logger.info("  Calling external API for coords: ({}, {})", lat, lon);
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getCurrentWeatherByCoords(lat, lon, providerTypeEnum, language)
+                                .flatMap(apiResult -> {
+                                    logger.info("  API call SUCCESS for coords: ({}, {})", lat, lon);
+                                    putInLocalCache(cacheKey, apiResult);
+                                    putInRedisCache(cacheKey, apiResult);
+                                    return Mono.just(apiResult);
+                                })
+                                .doOnError(error -> {
+                                    logger.error("  API call FAILED for coords: ({}, {})", lat, lon, error);
+                                });
+                    })
+                    .switchIfEmpty(Mono.defer(() -> {
+                        logger.info("  Redis cache MISS for key: {}", cacheKey);
+                        logger.info("  Calling external API for coords: ({}, {})", lat, lon);
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getCurrentWeatherByCoords(lat, lon, providerTypeEnum, language)
+                                .flatMap(apiResult -> {
+                                    logger.info("  API call SUCCESS for coords: ({}, {})", lat, lon);
+                                    putInLocalCache(cacheKey, apiResult);
+                                    putInRedisCache(cacheKey, apiResult);
+                                    return Mono.just(apiResult);
+                                })
+                                .doOnError(error -> {
+                                    logger.error("  API call FAILED for coords: ({}, {})", lat, lon, error);
+                                });
+                    }));
+        });
+    }
+    
+    @Override
+    public Mono<Map<String, Object>> getWeatherForecast(String cityName, String providerType, String language) {
         // Validar parâmetros de entrada
         if (cityName == null || cityName.trim().isEmpty()) {
             return Mono.error(new InvalidRequestException("City name cannot be empty"));
@@ -119,9 +190,10 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
             return Mono.error(new InvalidRequestException("City name can only contain letters, spaces, hyphens, and apostrophes"));
         }
         
-        String cacheKey = cityName + "-forecast-" + providerType;
+        String cacheKey = cityName + "-forecast-" + providerType + "-" + language;
         logger.info("=== HierarchicalCache.getWeatherForecast START ===");
-        logger.info("  City: {} | Provider: {} | CacheKey: {}", cityName, providerType, cacheKey);
+        logger.info("  City: {} | Provider: {} | Language: {} | CacheKey: {}", cityName, providerType, language, cacheKey);
+        
         return Mono.defer(() -> {
             Map<String, Object> localResult = getFromLocalCache(cacheKey);
             if (localResult != null) {
@@ -138,7 +210,8 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
                         }
                         logger.info("  Redis cache MISS for key: {}", cacheKey);
                         logger.info("  Calling external API for city: {}", cityName);
-                        return weatherService.getWeatherForecast(cityName)
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getWeatherForecast(cityName, providerTypeEnum, language)
                                 .flatMap(apiResult -> {
                                     logger.info("  API call SUCCESS for city: {}", cityName);
                                     putInLocalCache(cacheKey, apiResult);
@@ -150,9 +223,10 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
                                 });
                     })
                     .switchIfEmpty(Mono.defer(() -> {
-                        logger.info("  Redis cache MISS for key: {} (switchIfEmpty)", cacheKey);
+                        logger.info("  Redis cache MISS for key: {}", cacheKey);
                         logger.info("  Calling external API for city: {}", cityName);
-                        return weatherService.getWeatherForecast(cityName)
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getWeatherForecast(cityName, providerTypeEnum, language)
                                 .flatMap(apiResult -> {
                                     logger.info("  API call SUCCESS for city: {}", cityName);
                                     putInLocalCache(cacheKey, apiResult);
@@ -162,10 +236,76 @@ public class HierarchicalCacheServiceImpl implements HierarchicalCacheService {
                                 .doOnError(error -> {
                                     logger.error("  API call FAILED for city: {}", cityName, error);
                                 });
-                    }))
-                    .doOnError(error -> {
-                        logger.error("  Redis cache check FAILED for key: {}", cacheKey, error);
-                    });
+                    }));
+        });
+    }
+    
+    @Override
+    public Mono<Map<String, Object>> getWeatherForecastByCoords(Double lat, Double lon, String providerType, String language) {
+        if (lat == null || lon == null) {
+            return Mono.error(new InvalidRequestException("Latitude and longitude cannot be null"));
+        }
+        
+        if (lat < -90 || lat > 90) {
+            return Mono.error(new InvalidRequestException("Latitude must be between -90 and 90"));
+        }
+        
+        if (lon < -180 || lon > 180) {
+            return Mono.error(new InvalidRequestException("Longitude must be between -180 and 180"));
+        }
+        
+        String cacheKey = String.format("coords-%.6f,%.6f-forecast-%s-%s", lat, lon, providerType, language);
+        logger.info("=== HierarchicalCache.getWeatherForecastByCoords START ===");
+        logger.info("  Coords: ({}, {}) | Provider: {} | Language: {} | CacheKey: {}", lat, lon, providerType, language, cacheKey);
+        
+        if (weatherService == null) {
+            logger.error("HierarchicalCache: WeatherService is null!");
+            return Mono.error(new IllegalStateException("WeatherService not injected"));
+        }
+        
+        return Mono.defer(() -> {
+            Map<String, Object> localResult = getFromLocalCache(cacheKey);
+            if (localResult != null) {
+                logger.info("  Local cache HIT for key: {}", cacheKey);
+                return Mono.just(localResult);
+            }
+            logger.info("  Local cache MISS for key: {}", cacheKey);
+            return getFromRedisCache(cacheKey)
+                    .flatMap(redisResult -> {
+                        if (redisResult != null) {
+                            logger.info("  Redis cache HIT for key: {}", cacheKey);
+                            putInLocalCache(cacheKey, redisResult);
+                            return Mono.just(redisResult);
+                        }
+                        logger.info("  Redis cache MISS for key: {}", cacheKey);
+                        logger.info("  Calling external API for coords: ({}, {})", lat, lon);
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getWeatherForecastByCoords(lat, lon, providerTypeEnum, language)
+                                .flatMap(apiResult -> {
+                                    logger.info("  API call SUCCESS for coords: ({}, {})", lat, lon);
+                                    putInLocalCache(cacheKey, apiResult);
+                                    putInRedisCache(cacheKey, apiResult);
+                                    return Mono.just(apiResult);
+                                })
+                                .doOnError(error -> {
+                                    logger.error("  API call FAILED for coords: ({}, {})", lat, lon, error);
+                                });
+                    })
+                    .switchIfEmpty(Mono.defer(() -> {
+                        logger.info("  Redis cache MISS for key: {}", cacheKey);
+                        logger.info("  Calling external API for coords: ({}, {})", lat, lon);
+                        WeatherProviderType providerTypeEnum = WeatherProviderType.fromCode(providerType);
+                        return weatherService.getWeatherForecastByCoords(lat, lon, providerTypeEnum, language)
+                                .flatMap(apiResult -> {
+                                    logger.info("  API call SUCCESS for coords: ({}, {})", lat, lon);
+                                    putInLocalCache(cacheKey, apiResult);
+                                    putInRedisCache(cacheKey, apiResult);
+                                    return Mono.just(apiResult);
+                                })
+                                .doOnError(error -> {
+                                    logger.error("  API call FAILED for coords: ({}, {})", lat, lon, error);
+                                });
+                    }));
         });
     }
     

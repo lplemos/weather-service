@@ -1,0 +1,28 @@
+{
+  "weather": {
+    "current": "Current Weather",
+    "forecast": "5-Day Forecast",
+    "search": "Search for a city...",
+    "temperature": "Temperature",
+    "feelsLike": "Feels like",
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "visibility": "Visibility",
+    "pressure": "Pressure",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset"
+  },
+  "errors": {
+    "cityNotFound": "City not found",
+    "networkError": "Network error",
+    "locationDenied": "Location access denied",
+    "locationUnavailable": "Location unavailable"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "language": "Language",
+    "search": "Search"
+  }
+} 

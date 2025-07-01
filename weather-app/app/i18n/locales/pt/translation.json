@@ -1,0 +1,28 @@
+{
+  "weather": {
+    "current": "Tempo Atual",
+    "forecast": "Previsão 5 Dias",
+    "search": "Procurar por uma cidade...",
+    "temperature": "Temperatura",
+    "feelsLike": "Sensação térmica",
+    "humidity": "Humidade",
+    "wind": "Vento",
+    "visibility": "Visibilidade",
+    "pressure": "Pressão",
+    "sunrise": "Nascer do sol",
+    "sunset": "Pôr do sol"
+  },
+  "errors": {
+    "cityNotFound": "Cidade não encontrada",
+    "networkError": "Erro de rede",
+    "locationDenied": "Acesso à localização negado",
+    "locationUnavailable": "Localização indisponível"
+  },
+  "common": {
+    "loading": "A carregar...",
+    "error": "Erro",
+    "retry": "Tentar novamente",
+    "language": "Idioma",
+    "search": "Procurar"
+  }
+} 
