@@ -50,7 +50,7 @@ spring:
 
 weather:
   openweathermap:
-    api-key: ea25b1de819a34bd511e4fe2e2533dee
+    api-key: ${WEATHER_OPENWEATHERMAP_API_KEY:}
     base-url: https://api.openweathermap.org/data/2.5
     units: metric
     language: en
