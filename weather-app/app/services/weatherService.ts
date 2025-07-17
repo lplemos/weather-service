@@ -1,46 +1,142 @@
 import axios from 'axios';
-import type { WeatherData, ForecastData } from '../types/weather';
+import type { WeatherData, ForecastData, WeatherSummary } from '../types/weather';
+import { API_CONFIG, API_ENDPOINTS, buildApiUrl } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
-const weatherApi = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+const api = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
 });
 
+// Add request interceptor for authentication
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          const response = await axios.post(buildApiUrl(API_ENDPOINTS.AUTH.REFRESH), {
+            refreshToken
+          });
+          
+          const { token } = response.data;
+          localStorage.setItem('token', token);
+          
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+export const getCurrentWeather = async (
+  city: string,
+  lang: string = 'en'
+): Promise<WeatherData> => {
+  try {
+    const response = await api.get(buildApiUrl(API_ENDPOINTS.WEATHER.CURRENT), {
+      params: { city, lang },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching current weather:', error);
+    throw error;
+  }
+};
+
+export const getForecast = async (
+  city: string,
+  lang: string = 'en'
+): Promise<ForecastData> => {
+  try {
+    const response = await api.get(buildApiUrl(API_ENDPOINTS.WEATHER.FORECAST), {
+      params: { city, lang },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching weather forecast:', error);
+    throw error;
+  }
+};
+
+export const getCurrentWeatherByCoords = async (
+  lat: number,
+  lon: number,
+  lang: string = 'en'
+): Promise<WeatherData> => {
+  try {
+    const response = await api.get(buildApiUrl(API_ENDPOINTS.WEATHER.CURRENT), {
+      params: { lat, lon, lang },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching current weather:', error);
+    throw error;
+  }
+};
+
+export const getForecastByCoords = async (
+  lat: number,
+  lon: number,
+  lang: string = 'en'
+): Promise<ForecastData> => {
+  try {
+    const response = await api.get(buildApiUrl(API_ENDPOINTS.WEATHER.FORECAST), {
+      params: { lat, lon, lang },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching weather forecast:', error);
+    throw error;
+  }
+};
+
+export const getWeatherSummary = async (
+  lat: number,
+  lon: number,
+  lang: string = 'en'
+): Promise<WeatherSummary> => {
+  try {
+    const response = await api.get(buildApiUrl(API_ENDPOINTS.WEATHER.SUMMARY), {
+      params: { lat, lon, lang },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching weather summary:', error);
+    throw error;
+  }
+};
+
+// Export the weatherService object with all methods
 export const weatherService = {
-  async getCurrentWeather(city: string, language: string = 'en'): Promise<WeatherData> {
-    const response = await weatherApi.get(`/api/v1/weather/current`, {
-      params: { city, lang: language },
-    });
-    return response.data;
-  },
-
-  async getForecast(city: string, language: string = 'en'): Promise<ForecastData> {
-    const response = await weatherApi.get(`/api/v1/weather/forecast`, {
-      params: { city, lang: language },
-    });
-    return response.data;
-  },
-
-  async getCurrentWeatherByCoords(lat: number, lon: number, language: string = 'en'): Promise<WeatherData> {
-    const response = await weatherApi.get(`/api/v1/weather/current`, {
-      params: { lat, lon, lang: language },
-    });
-    return response.data;
-  },
-
-  async getForecastByCoords(lat: number, lon: number, language: string = 'en'): Promise<ForecastData> {
-    const response = await weatherApi.get(`/api/v1/weather/forecast`, {
-      params: { lat, lon, lang: language },
-    });
-    return response.data;
-  },
-
-  async getWeatherSummary(city: string): Promise<WeatherData> {
-    const response = await weatherApi.get(`/api/v1/weather/summary`, {
-      params: { city },
-    });
-    return response.data;
-  },
+  getCurrentWeather,
+  getForecast,
+  getCurrentWeatherByCoords,
+  getForecastByCoords,
+  getWeatherSummary,
 }; 

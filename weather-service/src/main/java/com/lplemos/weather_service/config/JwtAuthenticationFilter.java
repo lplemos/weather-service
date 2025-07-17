@@ -30,7 +30,14 @@ public class JwtAuthenticationFilter implements WebFilter {
     
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        logger.info("JwtAuthenticationFilter: Processing request to {}", exchange.getRequest().getPath());
+        String path = exchange.getRequest().getPath().value();
+        logger.info("JwtAuthenticationFilter: Processing request to {}", path);
+        
+        // Skip authentication for public endpoints
+        if (isPublicEndpoint(path)) {
+            logger.info("JwtAuthenticationFilter: Public endpoint detected, skipping authentication");
+            return chain.filter(exchange);
+        }
         
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
         logger.info("JwtAuthenticationFilter: Authorization header: {}", authHeader != null ? "present" : "null");
@@ -77,5 +84,16 @@ public class JwtAuthenticationFilter implements WebFilter {
                     logger.error("JwtAuthenticationFilter: Error processing JWT token: {}", error.getMessage(), error);
                     return chain.filter(exchange);
                 });
+    }
+    
+    private boolean isPublicEndpoint(String path) {
+        return path.startsWith("/auth/") ||
+               path.startsWith("/api/v1/weather/current") ||
+               path.startsWith("/api/v1/weather/forecast") ||
+               path.startsWith("/api/v1/weather/summary") ||
+               path.startsWith("/api/v1/weather/version") ||
+               path.startsWith("/api/v1/weather/status") ||
+               path.startsWith("/api/v1/weather/providers") ||
+               path.startsWith("/api/v1/weather/test");
     }
 } 

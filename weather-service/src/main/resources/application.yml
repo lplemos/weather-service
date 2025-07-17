@@ -20,6 +20,7 @@ weather:
     base-url: ${WEATHER_OPENWEATHERMAP_BASE_URL:https://api.openweathermap.org/data/2.5}
     units: ${WEATHER_OPENWEATHERMAP_UNITS:metric}
     language: ${WEATHER_OPENWEATHERMAP_LANGUAGE:en}
+    default-provider: ${WEATHER_DEFAULT_PROVIDER:OPENWEATHERMAP}
 
 # JWT Configuration
 jwt:

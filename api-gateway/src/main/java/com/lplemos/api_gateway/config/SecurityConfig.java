@@ -14,9 +14,13 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
             .authorizeExchange(exchanges -> exchanges
-                // Allow public endpoints
-                .pathMatchers("/actuator/health/**", "/actuator/info/**", "/actuator/metrics/**").permitAll()
-                .pathMatchers("/api/v1/weather/current/**", "/api/v1/weather/forecast/**", "/api/v1/weather/summary/**").permitAll()
+                // Public endpoints
+                .pathMatchers(
+                    "/api/health",
+                    "/actuator/health/**", "/actuator/info/**", "/actuator/metrics/**",
+                    "/api/v1/weather/current/**", "/api/v1/weather/forecast/**", "/api/v1/weather/summary/**",
+                    "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/validate"
+                ).permitAll()
                 // Require authentication for all other endpoints
                 .anyExchange().authenticated()
             )

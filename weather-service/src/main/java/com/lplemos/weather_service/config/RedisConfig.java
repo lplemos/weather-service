@@ -35,7 +35,7 @@ public class RedisConfig {
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(30)) // TTL padrão de 30 minutos
+                .entryTtl(Duration.ofMinutes(30)) // Default TTL of 30 minutes
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
                 .disableCachingNullValues();
@@ -43,9 +43,9 @@ public class RedisConfig {
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)
                 .withCacheConfiguration("weather-current", 
-                    config.entryTtl(Duration.ofMinutes(10))) // Cache mais curto para dados atuais
+                    config.entryTtl(Duration.ofMinutes(10))) // Shorter cache for current data
                 .withCacheConfiguration("weather-forecast", 
-                    config.entryTtl(Duration.ofHours(1))) // Cache mais longo para previsões
+                    config.entryTtl(Duration.ofHours(1))) // Longer cache for forecasts
                 .build();
     }
 } 

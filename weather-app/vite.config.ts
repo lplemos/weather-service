@@ -4,6 +4,10 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  base: '/weather/',
+  base: process.env.NODE_ENV === 'production' ? '/weather/' : '/',
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  server: {
+    port: 5173,
+    host: true,
+  },
 });

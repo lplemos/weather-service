@@ -21,7 +21,7 @@ public record WeatherSummary(
             response.sys().country(),
             response.main().temp(),
             response.main().feelsLike(),
-            response.weather().get(0).description(),
+            response.weather().getFirst().description(),
             response.main().humidity(),
             response.wind().speed(),
             LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault())

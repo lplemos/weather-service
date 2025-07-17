@@ -5,7 +5,6 @@ import com.lplemos.weather_service.controller.constants.WeatherControllerConstan
 import com.lplemos.weather_service.model.WeatherProviderType;
 import com.lplemos.weather_service.model.WeatherResponse;
 import com.lplemos.weather_service.model.WeatherSummary;
-import com.lplemos.weather_service.service.CacheService;
 import com.lplemos.weather_service.service.HierarchicalCacheService;
 import com.lplemos.weather_service.service.WeatherService;
 import com.lplemos.weather_service.validation.ValidProvider;
@@ -31,32 +30,13 @@ import java.util.Map;
 public class WeatherController {
     
     private final WeatherService weatherService;
-    private final CacheService cacheService;
     private final HierarchicalCacheService hierarchicalCacheService;
     
-    public WeatherController(WeatherService weatherService, CacheService cacheService, HierarchicalCacheService hierarchicalCacheService) {
+    public WeatherController(WeatherService weatherService, HierarchicalCacheService hierarchicalCacheService) {
         this.weatherService = weatherService;
-        this.cacheService = cacheService;
         this.hierarchicalCacheService = hierarchicalCacheService;
     }
-    
-    /**
-     * Test endpoint to verify OpenWeatherMap API key is working
-     * GET /api/v1/weather/test?city=Coimbra
-     */
-    @GetMapping(WeatherControllerConstants.TEST_ENDPOINT)
-    public Mono<Map<String, Object>> testWeatherApi(
-            @RequestParam(defaultValue = WeatherControllerConstants.DEFAULT_TEST_CITY)
-            @Valid
-            @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
-            String city,
-            @RequestParam(value = "lang", required = false, defaultValue = "en")
-            @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a 2-letter code (e.g., en, pt, es)")
-            String language) {
-        return hierarchicalCacheService.getCurrentWeather(city, "OPENWEATHERMAP", language);
-    }
-    
+
     /**
      * Get current weather for a city (raw response)
      * GET /api/v1/weather/current?city=Lisbon
@@ -65,16 +45,13 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.CURRENT_ENDPOINT)
     public Mono<Map<String, Object>> getCurrentWeather(
             @RequestParam(value = WeatherControllerConstants.PARAM_CITY, required = false) 
-            @Valid
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']*$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-',]*$", message = "City name can only contain letters, spaces, hyphens, apostrophes, and commas")
             String city,
             @RequestParam(value = "lat", required = false)
-            @Valid
             @Min(value = -90, message = "Latitude must be between -90 and 90")
             @Max(value = 90, message = "Latitude must be between -90 and 90")
             Double lat,
             @RequestParam(value = "lon", required = false)
-            @Valid
             @Min(value = -180, message = "Longitude must be between -180 and 180")
             @Max(value = 180, message = "Longitude must be between -180 and 180")
             Double lon,
@@ -111,9 +88,8 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.CURRENT_STRUCTURED_ENDPOINT)
     public Mono<WeatherResponse> getCurrentWeatherStructured(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
-            @Valid
             @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-',]+$", message = "City name can only contain letters, spaces, hyphens, apostrophes, and commas")
             String city,
             @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, required = false)
             @ValidProvider
@@ -134,9 +110,8 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.SUMMARY_ENDPOINT)
     public Mono<WeatherSummary> getWeatherSummary(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
-            @Valid
             @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-',]+$", message = "City name can only contain letters, spaces, hyphens, apostrophes, and commas")
             String city,
             @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, required = false)
             @ValidProvider
@@ -157,16 +132,13 @@ public class WeatherController {
     @GetMapping(WeatherControllerConstants.FORECAST_ENDPOINT)
     public Mono<Map<String, Object>> getWeatherForecast(
             @RequestParam(value = WeatherControllerConstants.PARAM_CITY, required = false) 
-            @Valid
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']*$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-',]*$", message = "City name can only contain letters, spaces, hyphens, apostrophes, and commas")
             String city,
             @RequestParam(value = "lat", required = false)
-            @Valid
             @Min(value = -90, message = "Latitude must be between -90 and 90")
             @Max(value = 90, message = "Latitude must be between -90 and 90")
             Double lat,
             @RequestParam(value = "lon", required = false)
-            @Valid
             @Min(value = -180, message = "Longitude must be between -180 and 180")
             @Max(value = 180, message = "Longitude must be between -180 and 180")
             Double lon,
@@ -271,85 +243,14 @@ public class WeatherController {
     }
     
     /**
-     * Debug endpoint to show API configuration
-     * GET /api/v1/weather/debug/config
-     */
-    @GetMapping("/debug/config")
-    public Mono<Map<String, Object>> debugConfig() {
-        return Mono.just(Map.<String, Object>of(
-            "message", "API configuration debug",
-            "timestamp", System.currentTimeMillis(),
-            "note", "Check application logs for configuration details and URL construction"
-        ));
-    }
-    
-    /**
-     * Get cache statistics
-     * GET /api/v1/weather/cache/stats
-     */
-    @GetMapping("/cache/stats")
-    public Mono<Map<String, Object>> getCacheStats() {
-        return cacheService.getCacheStats();
-    }
-    
-    /**
-     * Get cache health status
-     * GET /api/v1/weather/cache/health
-     */
-    @GetMapping("/cache/health")
-    public Mono<Map<String, Object>> getCacheHealth() {
-        return cacheService.isCacheAvailable()
-                .map(available -> Map.<String, Object>of(
-                    "cacheAvailable", available,
-                    "status", available ? "UP" : "DOWN",
-                    "message", available ? "Cache is responding normally" : "Cache is not available",
-                    "timestamp", System.currentTimeMillis()
-                ));
-    }
-    
-    /**
-     * Evict cache for a specific city
-     * DELETE /api/v1/weather/cache/city?city=Lisbon
-     */
-    @DeleteMapping("/cache/city")
-    public Mono<Map<String, Object>> evictCityCache(
-            @RequestParam(WeatherControllerConstants.PARAM_CITY) 
-            @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
-            String city) {
-        return cacheService.evictCityCache(city)
-                .map(success -> Map.<String, Object>of(
-                    "success", success,
-                    "city", city,
-                    "message", success ? "Cache evicted successfully" : "Failed to evict cache",
-                    "timestamp", System.currentTimeMillis()
-                ));
-    }
-    
-    /**
-     * Evict all weather cache
-     * DELETE /api/v1/weather/cache/all
-     */
-    @DeleteMapping("/cache/all")
-    public Mono<Map<String, Object>> evictAllCache() {
-        return cacheService.evictAllWeatherCache()
-                .map(success -> Map.<String, Object>of(
-                    "success", success,
-                    "message", success ? "All weather cache evicted successfully" : "Failed to evict all cache",
-                    "timestamp", System.currentTimeMillis()
-                ));
-    }
-    
-    /**
      * Get current weather (hierarchical) for a city
      * GET /api/v1/weather/hierarchical/current?city=Lisbon&provider=openweathermap&lang=pt
      */
     @GetMapping("/hierarchical/current")
     public Mono<Map<String, Object>> getCurrentWeatherHierarchical(
             @RequestParam(WeatherControllerConstants.PARAM_CITY)
-            @Valid
             @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-',]+$", message = "City name can only contain letters, spaces, hyphens, apostrophes, and commas")
             String city,
             @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, defaultValue = "OPENWEATHERMAP")
             @ValidProvider
@@ -368,7 +269,7 @@ public class WeatherController {
     public Mono<Map<String, Object>> getWeatherForecastHierarchical(
             @RequestParam(WeatherControllerConstants.PARAM_CITY)
             @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-',]+$", message = "City name can only contain letters, spaces, hyphens, apostrophes, and commas")
             String city,
             @RequestParam(value = WeatherControllerConstants.PARAM_PROVIDER, defaultValue = "OPENWEATHERMAP")
             @ValidProvider
@@ -405,7 +306,7 @@ public class WeatherController {
     public Mono<Map<String, Object>> evictHierarchicalCityCache(
             @RequestParam(WeatherControllerConstants.PARAM_CITY) 
             @NotBlank(message = "City name cannot be empty")
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-']+$", message = "City name can only contain letters, spaces, hyphens, and apostrophes")
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-',]+$", message = "City name can only contain letters, spaces, hyphens, apostrophes, and commas")
             String city) {
         return hierarchicalCacheService.evictCityCache(city)
                 .map(success -> Map.<String, Object>of(
@@ -429,4 +330,5 @@ public class WeatherController {
                     "timestamp", System.currentTimeMillis()
                 ));
     }
+
 } 

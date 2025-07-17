@@ -17,6 +17,7 @@ public class WeatherApiConfig {
     private String baseUrl;
     private String units;
     private String language;
+    private String defaultProvider = "OPENWEATHERMAP"; // Default value
     
     @PostConstruct
     public void logConfiguration() {
@@ -24,6 +25,7 @@ public class WeatherApiConfig {
         logger.info("Base URL: {}", baseUrl);
         logger.info("Units: {}", units);
         logger.info("Language: {}", language);
+        logger.info("Default Provider: {}", defaultProvider);
         logger.info("API Key: {}", apiKey != null && !apiKey.isEmpty() ? "***CONFIGURED***" : "***NOT CONFIGURED***");
     }
     
@@ -58,5 +60,13 @@ public class WeatherApiConfig {
     
     public void setLanguage(String language) {
         this.language = language;
+    }
+    
+    public String getDefaultProvider() {
+        return defaultProvider;
+    }
+    
+    public void setDefaultProvider(String defaultProvider) {
+        this.defaultProvider = defaultProvider;
     }
 } 

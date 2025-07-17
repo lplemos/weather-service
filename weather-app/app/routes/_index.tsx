@@ -10,8 +10,6 @@ export default function Index() {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('en');
   
-
-  
   const { 
     currentWeather, 
     forecast, 
@@ -54,14 +52,14 @@ export default function Index() {
         },
         (error) => {
           // Fallback to a default city if geolocation fails
-          fetchWeather('London');
-          fetchForecast('London');
+          fetchWeather('Amsterdam');
+          fetchForecast('Amsterdam');
         }
       );
     } else {
       // Fallback for browsers that don't support geolocation
-      fetchWeather('London');
-      fetchForecast('London');
+      fetchWeather('Amsterdam');
+      fetchForecast('Amsterdam');
     }
   }, [hasInitialized, fetchWeather, fetchForecast, fetchWeatherByCoords, fetchForecastByCoords]);
 
