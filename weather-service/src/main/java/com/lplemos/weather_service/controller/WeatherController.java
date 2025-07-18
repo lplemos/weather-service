@@ -4,6 +4,7 @@ import com.lplemos.weather_service.controller.constants.ApiVersionConstants;
 import com.lplemos.weather_service.controller.constants.WeatherControllerConstants;
 import com.lplemos.weather_service.model.WeatherProviderType;
 import com.lplemos.weather_service.model.WeatherResponse;
+import com.lplemos.weather_service.cache.CacheStatisticsService;
 import com.lplemos.weather_service.model.WeatherSummary;
 import com.lplemos.weather_service.service.HierarchicalCacheService;
 import com.lplemos.weather_service.service.WeatherService;
@@ -31,10 +32,12 @@ public class WeatherController {
     
     private final WeatherService weatherService;
     private final HierarchicalCacheService hierarchicalCacheService;
+    private final CacheStatisticsService cacheStatisticsService;
     
-    public WeatherController(WeatherService weatherService, HierarchicalCacheService hierarchicalCacheService) {
+    public WeatherController(WeatherService weatherService, HierarchicalCacheService hierarchicalCacheService, CacheStatisticsService cacheStatisticsService) {
         this.weatherService = weatherService;
         this.hierarchicalCacheService = hierarchicalCacheService;
+        this.cacheStatisticsService = cacheStatisticsService;
     }
 
     /**
@@ -281,21 +284,21 @@ public class WeatherController {
     }
     
     /**
-     * Get hierarchical cache statistics
+     * Get cache statistics
      * GET /api/v1/weather/hierarchical/cache/stats
      */
     @GetMapping("/hierarchical/cache/stats")
     public Mono<Map<String, Object>> getHierarchicalCacheStats() {
-        return hierarchicalCacheService.getCacheStats();
+        return cacheStatisticsService.getCacheStats();
     }
     
     /**
-     * Get hierarchical cache health status
+     * Get cache health status
      * GET /api/v1/weather/hierarchical/cache/health
      */
     @GetMapping("/hierarchical/cache/health")
     public Mono<Map<String, Boolean>> getHierarchicalCacheHealth() {
-        return hierarchicalCacheService.getCacheHealth();
+        return cacheStatisticsService.getCacheHealth();
     }
     
     /**

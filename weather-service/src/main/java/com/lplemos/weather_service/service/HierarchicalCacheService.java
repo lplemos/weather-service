@@ -34,14 +34,4 @@ public interface HierarchicalCacheService {
      * Evicts all data from both caches
      */
     Mono<Boolean> evictAllCache();
-    
-    /**
-     * Gets statistics from both cache layers
-     */
-    Mono<Map<String, Object>> getCacheStats();
-    
-    /**
-     * Checks availability of both cache layers
-     */
-    Mono<Map<String, Boolean>> getCacheHealth();
 } 
